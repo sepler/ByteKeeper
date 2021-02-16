@@ -1,8 +1,10 @@
 plugins {
 	id 'org.springframework.boot' version '2.4.2'
+	id 'idea'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 	id 'jacoco'
+	id "org.openapi.generator" version "5.0.1"
 }
 
 group = 'sepler'
@@ -21,6 +23,11 @@ repositories {
 
 dependencies {
 	implementation 'com.google.code.gson:gson:2.8.6'
+	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+	implementation 'io.swagger:swagger-annotations:1.6.2'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -33,14 +40,46 @@ bootJar {
 	mainClassName 'dev.steepler.ByteKeeper.runtime.ByteKeeperApplication'
 }
 
+
+task buildModel {
+	dependsOn clean
+	dependsOn tasks.openApiGenerate
+}
+openApiGenerate {
+	generatorName = "spring"
+	inputSpec = "$rootDir/templates/structure.yaml".toString()
+	outputDir = "$buildDir/private".toString()
+
+	apiPackage = "dev.sepler.bytekeeper"
+	modelPackage = "dev.sepler.bytekeeper.rest"
+	configOptions = [
+			bigDecimalAsString: "true",
+			booleanGetterPrefix: "is",
+			dateLibrary: "java8",
+			hideGenerationTimestamp: "true",
+			interfaceOnly: "true",
+			library: "spring-boot",
+			serializationLibrary: "jackson",
+			serializableModel: "true",
+			skipDefaultInterface: "true",
+			sourceFolder: "generated",
+			useTags: "true"
+	]
+	globalProperties = [
+			modelDocs: "false"
+	]
+	logToStderr = true
+	generateAliasAsModel = true
+	generateApiTests = false
+	generateModelTests = false
+}
+
 test {
 	useJUnitPlatform()
 }
-
 task testCoverage {
 	dependsOn jacocoTestCoverageVerification
 }
-
 jacocoTestCoverageVerification {
 	violationRules {
 		rule {
@@ -51,7 +90,6 @@ jacocoTestCoverageVerification {
 	}
 	finalizedBy jacocoTestReport
 }
-
 jacocoTestReport {
 	dependsOn jacocoTestCoverageVerification
 	reports {
@@ -64,12 +102,18 @@ jacocoTestReport {
 sourceSets {
 	main {
 		java {
-			srcDirs = ['src']
+			srcDirs = ["src", "$buildDir/private/generated"]
 		}
 	}
 	test {
 		java {
-			srcDirs = ['tst']
+			srcDirs = ["tst"]
 		}
+	}
+}
+
+idea {
+	module {
+		generatedSourceDirs += files("$buildDir/private/generated")
 	}
 }

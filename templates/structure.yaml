@@ -1,0 +1,114 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: ByteKeeper
+  license:
+    name: MIT
+
+paths:
+  /getFile:
+    post:
+      summary: Get a file
+      operationId: getFile
+      tags:
+        - ByteServer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetFileRequest"
+      responses:
+        200:
+          description: File retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetFileResponse"
+  /getFiles:
+    post:
+      summary: Get multiple files
+      operationId: getFiles
+      tags:
+        - ByteServer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetFilesRequest"
+      responses:
+        200:
+          description: Files retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetFilesResponse"
+
+components:
+  schemas:
+    GetFileRequest:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - id
+    GetFileResponse:
+      type: object
+      properties:
+        bytefile:
+          $ref: "#/components/schemas/ByteFile"
+      required:
+        - file
+
+    GetFilesRequest:
+      type: object
+      properties:
+        ids:
+          $ref: "#/components/schemas/IdentifierList"
+      required:
+        - ids
+    GetFilesResponse:
+      type: object
+      properties:
+        bytefiles:
+          $ref: "#/components/schemas/ByteFileList"
+      required:
+        - files
+
+    ByteFile:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Identifier"
+        content:
+          type: string
+      required:
+        - id
+    ByteFileList:
+      type: object
+      properties:
+        byteFiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ByteFile"
+      required:
+        - byteFiles
+
+    Identifier:
+      type: object
+      properties:
+        value:
+          type: string
+        boof:
+          type: boolean
+      required:
+        - value
+    IdentifierList:
+      type: object
+      properties:
+        ids:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - ids
