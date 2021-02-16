@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.4.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'jacoco'
 }
 
 group = 'sepler'
@@ -19,16 +20,46 @@ repositories {
 }
 
 dependencies {
+	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 }
 
 bootJar {
-	mainClassName 'dev.steepler.ByteKeeper.ByteKeeperApplication'
+	mainClassName 'dev.steepler.ByteKeeper.runtime.ByteKeeperApplication'
 }
+
+test {
+	useJUnitPlatform()
+}
+
+task testCoverage {
+	dependsOn jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.9
+			}
+		}
+	}
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn jacocoTestCoverageVerification
+	reports {
+		xml.enabled false
+		csv.enabled false
+	}
+}
+
 
 sourceSets {
 	main {
@@ -41,8 +72,4 @@ sourceSets {
 			srcDirs = ['tst']
 		}
 	}
-}
-
-test {
-	useJUnitPlatform()
 }
