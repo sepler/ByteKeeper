@@ -57,10 +57,10 @@ components:
     GetFileResponse:
       type: object
       properties:
-        bytefile:
+        byteFile:
           $ref: "#/components/schemas/ByteFile"
       required:
-        - file
+        - byteFile
 
     GetFilesRequest:
       type: object
@@ -72,10 +72,10 @@ components:
     GetFilesResponse:
       type: object
       properties:
-        bytefiles:
+        byteFiles:
           $ref: "#/components/schemas/ByteFileList"
       required:
-        - files
+        - byteFiles
 
     ByteFile:
       type: object
@@ -101,8 +101,6 @@ components:
       properties:
         value:
           type: string
-        boof:
-          type: boolean
       required:
         - value
     IdentifierList:
