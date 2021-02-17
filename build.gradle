@@ -41,9 +41,8 @@ bootJar {
 }
 
 
-task buildModel {
-	dependsOn clean
-	dependsOn tasks.openApiGenerate
+task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {
+	tasks['openApiGenerate'].shouldRunAfter tasks.clean
 }
 openApiGenerate {
 	generatorName = "spring"
@@ -99,6 +98,9 @@ jacocoTestReport {
 	}
 }
 
+task release(dependsOn: [tasks.buildModel, tasks.build]) {
+	tasks.build.shouldRunAfter tasks.buildModel
+}
 
 sourceSets {
 	main {
