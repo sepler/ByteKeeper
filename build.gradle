@@ -47,8 +47,9 @@ task buildModel {
 }
 openApiGenerate {
 	generatorName = "spring"
-	inputSpec = "$rootDir/templates/structure.yaml".toString()
+	inputSpec = "$rootDir/resources/spec/structure.yaml".toString()
 	outputDir = "$buildDir/private".toString()
+	templateDir = "$rootDir/resources/templates".toString()
 
 	apiPackage = "dev.sepler.bytekeeper"
 	modelPackage = "dev.sepler.bytekeeper.rest"

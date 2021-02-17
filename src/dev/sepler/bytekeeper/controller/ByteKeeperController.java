@@ -1,6 +1,6 @@
-package dev.sepler.bytekeeper.activity;
+package dev.sepler.bytekeeper.controller;
 
-import dev.sepler.bytekeeper.ByteServerApi;
+import dev.sepler.bytekeeper.ByteKeeperApi;
 import dev.sepler.bytekeeper.rest.GetFileRequest;
 import dev.sepler.bytekeeper.rest.GetFileResponse;
 import dev.sepler.bytekeeper.rest.GetFilesRequest;
@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 @RestController
-public class ByteKeeperActivity implements ByteServerApi {
+public class ByteKeeperController implements ByteKeeperApi {
 
     @Override
     public ResponseEntity<GetFileResponse> getFile(@Valid GetFileRequest getFileRequest) {
-        return null;
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<GetFilesResponse> getFiles(@Valid GetFilesRequest getFilesRequest) {
-        return null;
+        return ResponseEntity.noContent().build();
     }
 }

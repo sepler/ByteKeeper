@@ -11,7 +11,7 @@ paths:
       summary: Get a file
       operationId: getFile
       tags:
-        - ByteServer
+        - ByteKeeper
       requestBody:
         required: true
         content:
@@ -30,7 +30,7 @@ paths:
       summary: Get multiple files
       operationId: getFiles
       tags:
-        - ByteServer
+        - ByteKeeper
       requestBody:
         required: true
         content:
@@ -66,14 +66,18 @@ components:
       type: object
       properties:
         ids:
-          $ref: "#/components/schemas/IdentifierList"
+          type: array
+          items:
+            $ref: "#/components/schemas/Identifier"
       required:
         - ids
     GetFilesResponse:
       type: object
       properties:
         byteFiles:
-          $ref: "#/components/schemas/ByteFileList"
+          type: array
+          items:
+            $ref: "#/components/schemas/ByteFile"
       required:
         - byteFiles
 
@@ -86,15 +90,6 @@ components:
           type: string
       required:
         - id
-    ByteFileList:
-      type: object
-      properties:
-        byteFiles:
-          type: array
-          items:
-            $ref: "#/components/schemas/ByteFile"
-      required:
-        - byteFiles
 
     Identifier:
       type: object
@@ -103,10 +98,3 @@ components:
           type: string
       required:
         - value
-    IdentifierList:
-      type: object
-      properties:
-        ids:
-          $ref: "#/components/schemas/Identifier"
-      required:
-        - ids
