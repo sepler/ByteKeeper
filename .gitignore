@@ -1,7 +1,4 @@
 .gradle
 .idea
 build
-gradle
 ByteKeeperService.iml
-gradlew
-gradlew.bat
