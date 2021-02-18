@@ -40,7 +40,6 @@ bootJar {
 	mainClassName 'dev.steepler.ByteKeeper.runtime.ByteKeeperApplication'
 }
 
-
 task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {
 	tasks['openApiGenerate'].shouldRunAfter tasks.clean
 }
@@ -74,27 +73,36 @@ openApiGenerate {
 	generateModelTests = false
 }
 
+check {
+	dependsOn jacocoTestCoverageVerification
+}
+
 test {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
-task testCoverage {
-	dependsOn jacocoTestCoverageVerification
+
+final JACOCO_EXCLUDED = [
+		'dev/sepler/bytekeeper/runtime/**'
+]
+jacocoTestReport {
+	afterEvaluate {
+		classDirectories.setFrom files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: JACOCO_EXCLUDED)
+		})
+	}
 }
 jacocoTestCoverageVerification {
 	violationRules {
 		rule {
+			element 'CLASS'
 			limit {
+				counter = 'INSTRUCTION'
+				value = 'COVEREDRATIO'
 				minimum = 0.9
 			}
+			excludes = JACOCO_EXCLUDED.collect{it.replace("/", ".")}
 		}
-	}
-	finalizedBy jacocoTestReport
-}
-jacocoTestReport {
-	dependsOn jacocoTestCoverageVerification
-	reports {
-		xml.enabled false
-		csv.enabled false
 	}
 }
 
