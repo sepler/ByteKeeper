@@ -1,10 +1,11 @@
 plugins {
 	id 'checkstyle'
+    id 'com.github.spotbugs' version '4.6.0'
 	id 'jacoco'
 	id 'java'
 	id 'idea'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id "org.openapi.generator" version "5.0.1"
+	id 'org.openapi.generator' version '5.0.1'
 	id 'org.springframework.boot' version '2.4.2'
 }
 
@@ -43,6 +44,9 @@ bootJar {
 
 task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {
 	tasks['openApiGenerate'].shouldRunAfter tasks.clean
+    doLast {
+        delete "$buildDir/private/generated/dev/sepler/bytekeeper/ApiUtil.java"
+    }
 }
 openApiGenerate {
 	generatorName = "spring"
@@ -90,6 +94,21 @@ tasks.withType(Checkstyle) {
 		html.stylesheet resources.text.fromFile('config/checkstyle/stylesheet.xsl')
 	}
 }
+
+spotbugsMain {
+    reports {
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/spotbugs/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    }
+    auxClassPaths = files(sourceSets.main.compileClasspath, sourceSets.test.compileClasspath)
+    classDirs = files(sourceSets.main.output, sourceSets.test.output)
+    sourceDirs = files(sourceSets.main.allSource.srcDirs, sourceSets.test.allSource.srcDirs)
+}
+spotbugsTest.enabled false
+
 check {
     dependsOn tasks.checkstyle
     dependsOn jacocoTestCoverageVerification

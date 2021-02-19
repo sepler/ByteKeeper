@@ -64,7 +64,7 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}}{{^parent}}
 
   {{#vars}}
   public {{classname}} with{{#lambda.titlecase}}{{name}}{{/lambda.titlecase}}({{{datatypeWithEnum}}} {{name}}) {
-    return this.{{name}} == {{name}} ? this : new {{classname}}({{#model.vars}}{{name}}{{^-last}}, {{/-last}}{{/model.vars}});
+    return this.{{name}}.equals({{name}}) ? this : new {{classname}}({{#model.vars}}{{name}}{{^-last}}, {{/-last}}{{/model.vars}});
   }
 
   /**
