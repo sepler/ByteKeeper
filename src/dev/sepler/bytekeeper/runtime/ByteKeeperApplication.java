@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 public class ByteKeeperApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ByteKeeperApplication.class, args);
-	}
+    public static void main(final String[] args) {
+        SpringApplication.run(ByteKeeperApplication.class, args);
+    }
 
 }

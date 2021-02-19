@@ -1,10 +1,11 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.2'
+	id 'checkstyle'
+	id 'jacoco'
+	id 'java'
 	id 'idea'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
-	id 'jacoco'
 	id "org.openapi.generator" version "5.0.1"
+	id 'org.springframework.boot' version '2.4.2'
 }
 
 group = 'sepler'
@@ -73,8 +74,25 @@ openApiGenerate {
 	generateModelTests = false
 }
 
+checkstyle {
+    sourceSets = []
+}
+task checkstyle(type: Checkstyle) {
+    group "verification"
+    source files("src", "tst")
+
+    classpath = files()
+}
+tasks.withType(Checkstyle) {
+	reports {
+		xml.enabled false
+		html.enabled true
+		html.stylesheet resources.text.fromFile('config/checkstyle/stylesheet.xsl')
+	}
+}
 check {
-	dependsOn jacocoTestCoverageVerification
+    dependsOn tasks.checkstyle
+    dependsOn jacocoTestCoverageVerification
 }
 
 test {
@@ -92,7 +110,18 @@ jacocoTestReport {
 		})
 	}
 }
+def printJacocoPath = task printJacocoPath {
+    outputs.upToDateWhen { false }
+    doLast {
+        if (jacocoTestCoverageVerification.state.getFailure() != null) {
+            String msg = "Jacoco Coverage Verification FAILED. Report: " +
+                    file("file:///$buildDir/reports/jacoco/test/html/index.html").toString()
+            ant.fail(msg)
+        }
+    }
+}
 jacocoTestCoverageVerification {
+    mustRunAfter jacocoTestReport
 	violationRules {
 		rule {
 			element 'CLASS'
@@ -104,6 +133,7 @@ jacocoTestCoverageVerification {
 			excludes = JACOCO_EXCLUDED.collect{it.replace("/", ".")}
 		}
 	}
+    finalizedBy printJacocoPath
 }
 
 task release(dependsOn: [tasks.buildModel, tasks.build]) {

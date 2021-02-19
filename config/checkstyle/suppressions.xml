@@ -1,0 +1,15 @@
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+
+    <suppress checks=".*"
+              files=".*[\\/]build[\\/]private[\\/]generated[\\/].+\.java$"/>
+
+    <suppress checks="HideUtilityClassConstructor"
+              files=".*[\\/]dev.sepler.bytekeeper.runtime.ByteKeeperApplication.java$"/>
+
+    <suppress checks="MethodName"
+              files=".*[\\/]tst[\\/].+Test\.java$"/>
+
+</suppressions>
