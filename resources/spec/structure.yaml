@@ -44,6 +44,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetFilesResponse"
+  /putFile:
+    post:
+      summary: Put a file
+      operationId: putFile
+      tags:
+        - ByteKeeper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutFileRequest"
+      responses:
+        200:
+          description: File put
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PutFileResponse"
 
 components:
   schemas:
@@ -80,6 +99,22 @@ components:
             $ref: "#/components/schemas/ByteFile"
       required:
         - byteFiles
+
+    PutFileRequest:
+      type: object
+      properties:
+        byteFile:
+          $ref: "#/components/schemas/ByteFile"
+      required:
+        - byteFile
+
+    PutFileResponse:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - id
 
     ByteFile:
       type: object
