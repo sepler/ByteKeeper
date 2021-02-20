@@ -25,6 +25,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetFileResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /getFiles:
     post:
       summary: Get multiple files
@@ -44,6 +50,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetFilesResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /putFile:
     post:
       summary: Put a file
@@ -63,6 +75,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PutFileResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -88,6 +106,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Identifier"
+          minItems: 2
       required:
         - ids
     GetFilesResponse:
@@ -115,6 +134,14 @@ components:
           $ref: "#/components/schemas/Identifier"
       required:
         - id
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
 
     ByteFile:
       type: object
