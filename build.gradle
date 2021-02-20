@@ -63,6 +63,7 @@ openApiGenerate {
 			hideGenerationTimestamp: "true",
 			interfaceOnly: "true",
 			library: "spring-boot",
+            performBeanValidation: "true",
 			serializationLibrary: "jackson",
 			serializableModel: "true",
 			skipDefaultInterface: "true",
@@ -76,6 +77,10 @@ openApiGenerate {
 	generateAliasAsModel = true
 	generateApiTests = false
 	generateModelTests = false
+}
+
+test {
+    useJUnitPlatform()
 }
 
 checkstyle {
@@ -103,21 +108,8 @@ spotbugsMain {
             stylesheet = 'fancy-hist.xsl'
         }
     }
-    auxClassPaths = files(sourceSets.main.compileClasspath, sourceSets.test.compileClasspath)
-    classDirs = files(sourceSets.main.output, sourceSets.test.output)
-    sourceDirs = files(sourceSets.main.allSource.srcDirs, sourceSets.test.allSource.srcDirs)
 }
 spotbugsTest.enabled false
-
-check {
-    dependsOn tasks.checkstyle
-    dependsOn jacocoTestCoverageVerification
-}
-
-test {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
-}
 
 final JACOCO_EXCLUDED = [
 		'dev/sepler/bytekeeper/runtime/**'
@@ -140,7 +132,7 @@ def printJacocoPath = task printJacocoPath {
     }
 }
 jacocoTestCoverageVerification {
-    mustRunAfter jacocoTestReport
+    dependsOn jacocoTestReport
 	violationRules {
 		rule {
 			element 'CLASS'
@@ -153,6 +145,11 @@ jacocoTestCoverageVerification {
 		}
 	}
     finalizedBy printJacocoPath
+}
+
+check {
+    dependsOn tasks.checkstyle
+    dependsOn jacocoTestCoverageVerification
 }
 
 task release(dependsOn: [tasks.buildModel, tasks.build]) {
