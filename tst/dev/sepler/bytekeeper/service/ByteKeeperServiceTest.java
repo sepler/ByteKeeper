@@ -1,5 +1,11 @@
 package dev.sepler.bytekeeper.service;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+
+import dev.sepler.bytekeeper.accessor.FileAccessor;
 import dev.sepler.bytekeeper.rest.ByteFile;
 import dev.sepler.bytekeeper.rest.Identifier;
 import java.util.Arrays;
@@ -8,21 +14,33 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 public class ByteKeeperServiceTest {
 
+    @Mock
+    private FileAccessor fileAccessor;
+
     @InjectMocks
     private ByteKeeperService byteKeeperService;
+
+    @Mock
+    private FileSystemResource fileSystemResource;
 
     @Test
     public void getFile_worksOk() {
         Identifier id = new Identifier().withValue("id");
 
-        ByteFile byteFile = byteKeeperService.getFile(id);
+        doReturn(fileSystemResource).when(fileAccessor).retrieve("id");
 
-        Assertions.assertEquals("id", byteFile.getId().getValue());
+        FileSystemResource fileSystemResource = byteKeeperService.getFile(id);
+
+        Assertions.assertNotNull(fileSystemResource);
     }
 
     @Test
@@ -36,10 +54,12 @@ public class ByteKeeperServiceTest {
 
     @Test
     public void putFile_worksOk() {
-        ByteFile byteFile = new ByteFile().withId(new Identifier().withValue("id"));
+        MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
 
-        Identifier id = byteKeeperService.putFile(byteFile);
+        doNothing().when(fileAccessor).save(anyString(), eq(multipartFile));
 
-        Assertions.assertEquals("id", id.getValue());
+        Identifier id = byteKeeperService.putFile(multipartFile);
+
+        Assertions.assertTrue(id.getValue().length() > 0);
     }
 }

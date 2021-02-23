@@ -5,7 +5,7 @@ plugins {
 	id 'java'
 	id 'idea'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'org.openapi.generator' version '5.0.1'
+	id 'org.openapi.generator' version '5.0.0-beta3'
 	id 'org.springframework.boot' version '2.4.2'
 }
 
@@ -50,7 +50,7 @@ task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {
 }
 openApiGenerate {
 	generatorName = "spring"
-	inputSpec = "$rootDir/resources/spec/structure.yaml".toString()
+	inputSpec = "$rootDir/resources/spec/structure.yml".toString()
 	outputDir = "$buildDir/private".toString()
 	templateDir = "$rootDir/resources/templates".toString()
 
@@ -135,11 +135,11 @@ jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
 	violationRules {
 		rule {
-			element 'CLASS'
+			element 'BUNDLE'
 			limit {
 				counter = 'INSTRUCTION'
 				value = 'COVEREDRATIO'
-				minimum = 0.9
+				minimum = 0.8
 			}
 			excludes = JACOCO_EXCLUDED.collect{it.replace("/", ".")}
 		}

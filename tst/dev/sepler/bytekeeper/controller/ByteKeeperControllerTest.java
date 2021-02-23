@@ -8,7 +8,6 @@ import static org.mockito.Mockito.doReturn;
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
 import dev.sepler.bytekeeper.rest.ByteFile;
 import dev.sepler.bytekeeper.rest.GetFileRequest;
-import dev.sepler.bytekeeper.rest.GetFileResponse;
 import dev.sepler.bytekeeper.rest.GetFilesRequest;
 import dev.sepler.bytekeeper.rest.GetFilesResponse;
 import dev.sepler.bytekeeper.rest.Identifier;
@@ -22,8 +21,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 public class ByteKeeperControllerTest {
@@ -34,14 +37,17 @@ public class ByteKeeperControllerTest {
     @InjectMocks
     private ByteKeeperController byteKeeperController;
 
+    @Mock
+    private FileSystemResource fileSystemResource;
+
     @Test
     public void getFile_withValidRequest_thenOk() {
         GetFileRequest getFileRequest = new GetFileRequest().withId(new Identifier().withValue("id"));
 
-        doReturn(new ByteFile()).when(byteKeeperService).getFile(any());
+        doReturn(fileSystemResource).when(byteKeeperService).getFile(any());
 
-        ResponseEntity<GetFileResponse> responseEntity = byteKeeperController.getFile(getFileRequest);
-        Assertions.assertNotNull(responseEntity.getBody().getByteFile());
+        ResponseEntity<Resource> responseEntity = byteKeeperController.getFile(getFileRequest);
+        Assertions.assertNotNull(responseEntity.getBody());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
@@ -79,12 +85,12 @@ public class ByteKeeperControllerTest {
 
     @Test
     public void putFile_withValidRequest_thenOk() {
-        PutFileRequest putFileRequest = new PutFileRequest()
-                .withByteFile(new ByteFile().withId(new Identifier().withValue("id1")));
+        PutFileRequest putFileRequest = new PutFileRequest();
+        MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
 
         doReturn(new Identifier()).when(byteKeeperService).putFile(any());
 
-        ResponseEntity<PutFileResponse> responseEntity = byteKeeperController.putFile(putFileRequest);
+        ResponseEntity<PutFileResponse> responseEntity = byteKeeperController.putFile(multipartFile, putFileRequest);
         Assertions.assertNotNull(responseEntity.getBody().getId());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -94,7 +100,7 @@ public class ByteKeeperControllerTest {
         PutFileRequest putFileRequest = new PutFileRequest();
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
-            byteKeeperController.putFile(putFileRequest);
+            byteKeeperController.putFile(null, putFileRequest);
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
     }

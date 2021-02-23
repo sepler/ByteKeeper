@@ -4,6 +4,8 @@ info:
   title: ByteKeeper
   license:
     name: MIT
+servers:
+  - url: http://localhost:8080
 
 paths:
   /getFile:
@@ -22,9 +24,10 @@ paths:
         200:
           description: File retrieved
           content:
-            application/json:
+            application/octet-stream:
               schema:
-                $ref: "#/components/schemas/GetFileResponse"
+                type: string
+                format: binary
         400:
           description: Invalid request
           content:
@@ -65,9 +68,16 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PutFileRequest"
+              properties:
+                putFileRequest:
+                  $ref: "#/components/schemas/PutFileRequest"
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
       responses:
         200:
           description: File put
@@ -122,11 +132,8 @@ components:
     PutFileRequest:
       type: object
       properties:
-        byteFile:
-          $ref: "#/components/schemas/ByteFile"
-      required:
-        - byteFile
-
+        meta:
+          type: string
     PutFileResponse:
       type: object
       properties:
