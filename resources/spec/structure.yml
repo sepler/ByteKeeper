@@ -155,8 +155,14 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/Identifier"
-        content:
+        name:
           type: string
+        size:
+          type: integer
+          format: int64
+        createdAt:
+          type: integer
+          format: int64
       required:
         - id
 

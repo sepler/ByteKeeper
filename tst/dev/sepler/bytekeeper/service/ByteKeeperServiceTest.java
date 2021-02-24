@@ -6,8 +6,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import dev.sepler.bytekeeper.accessor.FileAccessor;
-import dev.sepler.bytekeeper.rest.ByteFile;
-import dev.sepler.bytekeeper.rest.Identifier;
+import dev.sepler.bytekeeper.model.ByteFile;
+import dev.sepler.bytekeeper.model.Identifier;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

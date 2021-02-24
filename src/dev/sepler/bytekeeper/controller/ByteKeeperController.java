@@ -2,11 +2,13 @@ package dev.sepler.bytekeeper.controller;
 
 import dev.sepler.bytekeeper.ByteKeeperApi;
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
-import dev.sepler.bytekeeper.rest.ByteFile;
+import dev.sepler.bytekeeper.mapper.ByteFileMapper;
+import dev.sepler.bytekeeper.mapper.IdentifierMapper;
+import dev.sepler.bytekeeper.model.ByteFile;
+import dev.sepler.bytekeeper.model.Identifier;
 import dev.sepler.bytekeeper.rest.GetFileRequest;
 import dev.sepler.bytekeeper.rest.GetFilesRequest;
 import dev.sepler.bytekeeper.rest.GetFilesResponse;
-import dev.sepler.bytekeeper.rest.Identifier;
 import dev.sepler.bytekeeper.rest.PutFileRequest;
 import dev.sepler.bytekeeper.rest.PutFileResponse;
 import dev.sepler.bytekeeper.service.ByteKeeperService;
@@ -20,6 +22,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -33,7 +36,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ByteKeeperController implements ByteKeeperApi {
 
-    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+    private final ByteFileMapper byteFileMapper = Mappers.getMapper(ByteFileMapper.class);
+
+    private final IdentifierMapper identifierMapper = Mappers.getMapper(IdentifierMapper.class);
+
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Autowired
     private final ByteKeeperService byteKeeperService;
@@ -41,12 +48,12 @@ public class ByteKeeperController implements ByteKeeperApi {
     @Override
     public ResponseEntity<Resource> getFile(final GetFileRequest getFileRequest) {
         log.info("Received getFile request: {}", getFileRequest);
-        Set<ConstraintViolation<GetFileRequest>> violations = VALIDATOR.validate(getFileRequest);
+        Set<ConstraintViolation<GetFileRequest>> violations = validator.validate(getFileRequest);
         if (!violations.isEmpty()) {
             throwErrorResponse(violations);
         }
 
-        Identifier id = getFileRequest.getId();
+        Identifier id = identifierMapper.map(getFileRequest.getId());
         FileSystemResource fileSystemResource = byteKeeperService.getFile(id);
 
         return ResponseEntity.ok().body(fileSystemResource);
@@ -55,21 +62,24 @@ public class ByteKeeperController implements ByteKeeperApi {
     @Override
     public ResponseEntity<GetFilesResponse> getFiles(final GetFilesRequest getFilesRequest) {
         log.info("Received getFiles request: {}", getFilesRequest);
-        Set<ConstraintViolation<GetFilesRequest>> violations = VALIDATOR.validate(getFilesRequest);
+        Set<ConstraintViolation<GetFilesRequest>> violations = validator.validate(getFilesRequest);
         if (!violations.isEmpty()) {
             throwErrorResponse(violations);
         }
-        List<Identifier> ids = getFilesRequest.getIds();
+        List<Identifier> ids = getFilesRequest.getIds().stream()
+                .map(identifierMapper::map)
+                .collect(Collectors.toList());
         List<ByteFile> byteFiles = byteKeeperService.getFiles(ids);
 
-        GetFilesResponse getFilesResponse = new GetFilesResponse().withByteFiles(byteFiles);
+        GetFilesResponse getFilesResponse = new GetFilesResponse()
+                .withByteFiles(byteFiles.stream().map(byteFileMapper::toSdk).collect(Collectors.toList()));
         return ResponseEntity.ok().body(getFilesResponse);
     }
 
     @Override
     public ResponseEntity<PutFileResponse> putFile(final MultipartFile file, final PutFileRequest putFileRequest) {
         log.info("Received putFiles request: {}", putFileRequest);
-        Set<ConstraintViolation<PutFileRequest>> violations = VALIDATOR.validate(putFileRequest);
+        Set<ConstraintViolation<PutFileRequest>> violations = validator.validate(putFileRequest);
         if (!violations.isEmpty()) {
             throwErrorResponse(violations);
         } else if (Objects.isNull(file)) {
@@ -77,7 +87,8 @@ public class ByteKeeperController implements ByteKeeperApi {
         }
         Identifier id = byteKeeperService.putFile(file);
 
-        PutFileResponse putFileResponse = new PutFileResponse().withId(id);
+        PutFileResponse putFileResponse = new PutFileResponse()
+                .withId(identifierMapper.toSdk(id));
         return ResponseEntity.ok().body(putFileResponse);
     }
 

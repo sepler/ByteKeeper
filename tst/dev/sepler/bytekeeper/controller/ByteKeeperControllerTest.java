@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
-import dev.sepler.bytekeeper.rest.ByteFile;
 import dev.sepler.bytekeeper.rest.GetFileRequest;
 import dev.sepler.bytekeeper.rest.GetFilesRequest;
 import dev.sepler.bytekeeper.rest.GetFilesResponse;
@@ -66,7 +65,8 @@ public class ByteKeeperControllerTest {
         GetFilesRequest getFilesRequest = new GetFilesRequest()
                 .withIds(Arrays.asList(new Identifier().withValue("id1"), new Identifier().withValue("id2")));
 
-        doReturn(Arrays.asList(new ByteFile(), new ByteFile())).when(byteKeeperService).getFiles(anyList());
+        doReturn(Arrays.asList(new dev.sepler.bytekeeper.model.ByteFile(),
+                new dev.sepler.bytekeeper.model.ByteFile())).when(byteKeeperService).getFiles(anyList());
 
         ResponseEntity<GetFilesResponse> responseEntity = byteKeeperController.getFiles(getFilesRequest);
         Assertions.assertFalse(responseEntity.getBody().getByteFiles().isEmpty());
@@ -88,7 +88,7 @@ public class ByteKeeperControllerTest {
         PutFileRequest putFileRequest = new PutFileRequest();
         MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
 
-        doReturn(new Identifier()).when(byteKeeperService).putFile(any());
+        doReturn(new dev.sepler.bytekeeper.model.Identifier()).when(byteKeeperService).putFile(any());
 
         ResponseEntity<PutFileResponse> responseEntity = byteKeeperController.putFile(multipartFile, putFileRequest);
         Assertions.assertNotNull(responseEntity.getBody().getId());

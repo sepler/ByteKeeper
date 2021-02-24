@@ -90,6 +90,10 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}}{{^parent}}
     return this.{{name}};
   }
 
+  public void {{setter}}({{>nullableDataType}} {{name}}) {
+  this.{{name}} = {{name}};
+  }
+
   {{/vars}}
 
   @Override

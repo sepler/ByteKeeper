@@ -1,8 +1,8 @@
 package dev.sepler.bytekeeper.service;
 
 import dev.sepler.bytekeeper.accessor.FileAccessor;
-import dev.sepler.bytekeeper.rest.ByteFile;
-import dev.sepler.bytekeeper.rest.Identifier;
+import dev.sepler.bytekeeper.model.ByteFile;
+import dev.sepler.bytekeeper.model.Identifier;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,7 +30,7 @@ public class ByteKeeperService {
     }
 
     public Identifier putFile(final MultipartFile multipartFile) {
-        Identifier id = new Identifier().withValue(UUID.randomUUID().toString());
+        Identifier id = Identifier.of(UUID.randomUUID().toString());
         fileAccessor.save(id.getValue(), multipartFile);
         return id;
     }

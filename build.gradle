@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.github.spotbugs:spotbugs-annotations:4.2.1'
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	implementation 'io.swagger:swagger-annotations:1.6.2'
@@ -122,7 +123,9 @@ spotbugsMain {
 spotbugsTest.enabled false
 
 final JACOCO_EXCLUDED = [
-		'dev/sepler/bytekeeper/runtime/**'
+        'dev/sepler/bytekeeper/mapper/*',
+        'dev/sepler/bytekeeper/model/*',
+		'dev/sepler/bytekeeper/runtime/*'
 ]
 jacocoTestReport {
 	afterEvaluate {
@@ -143,6 +146,11 @@ def printJacocoPath = task printJacocoPath {
 }
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
+    afterEvaluate {
+        getClassDirectories().setFrom files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: JACOCO_EXCLUDED)
+        })
+    }
 	violationRules {
 		rule {
 			element 'BUNDLE'
@@ -151,7 +159,6 @@ jacocoTestCoverageVerification {
 				value = 'COVEREDRATIO'
 				minimum = 0.8
 			}
-			excludes = JACOCO_EXCLUDED.collect{it.replace("/", ".")}
 		}
 	}
     finalizedBy printJacocoPath
