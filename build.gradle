@@ -27,19 +27,29 @@ dependencies {
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	implementation 'io.swagger:swagger-annotations:1.6.2'
+    implementation 'org.mapstruct:mapstruct:1.4.2.Final'
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
+    implementation 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	compileOnly 'org.projectlombok:lombok'
+    annotationProcessor project('lib:accessornaming-spi')
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
 	annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 }
 
 bootJar {
 	mainClassName 'dev.steepler.ByteKeeper.runtime.ByteKeeperApplication'
+}
+
+compileJava {
+    options.compilerArgs += [
+            "-Amapstruct.unmappedTargetPolicy=ERROR"
+    ]
 }
 
 task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {

@@ -1,1 +1,3 @@
 rootProject.name = 'ByteKeeperService'
+
+include "lib:accessornaming-spi"
