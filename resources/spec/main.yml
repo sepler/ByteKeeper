@@ -8,10 +8,10 @@ servers:
   - url: http://localhost:8080
 
 paths:
-  /getFile:
+  /getByteFile:
     post:
-      summary: Get a file
-      operationId: getFile
+      summary: Get a ByteFile
+      operationId: getByteFile
       tags:
         - ByteKeeper
       requestBody:
@@ -19,7 +19,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GetFileRequest"
+              $ref: "#/components/schemas/GetByteFileRequest"
+      responses:
+        200:
+          description: ByteFile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetByteFileResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /getByteFiles:
+    post:
+      summary: Get multiple ByteFiles
+      operationId: getByteFiles
+      tags:
+        - ByteKeeper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetByteFilesRequest"
+      responses:
+        200:
+          description: Files retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetByteFilesResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /download/{id}:
+    get:
+      summary: Download a file
+      operationId: downloadFile
+      tags:
+        - ByteKeeper
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Identifier of file
       responses:
         200:
           description: File retrieved
@@ -34,31 +86,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /getFiles:
-    post:
-      summary: Get multiple files
-      operationId: getFiles
-      tags:
-        - ByteKeeper
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GetFilesRequest"
-      responses:
-        200:
-          description: Files retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetFilesResponse"
-        400:
-          description: Invalid request
+        404:
+          description: File not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
   /putFile:
     post:
       summary: Put a file
@@ -94,14 +128,14 @@ paths:
 
 components:
   schemas:
-    GetFileRequest:
+    GetByteFileRequest:
       type: object
       properties:
         id:
           $ref: "#/components/schemas/Identifier"
       required:
         - id
-    GetFileResponse:
+    GetByteFileResponse:
       type: object
       properties:
         byteFile:
@@ -109,7 +143,7 @@ components:
       required:
         - byteFile
 
-    GetFilesRequest:
+    GetByteFilesRequest:
       type: object
       properties:
         ids:
@@ -119,7 +153,7 @@ components:
           minItems: 2
       required:
         - ids
-    GetFilesResponse:
+    GetByteFilesResponse:
       type: object
       properties:
         byteFiles:

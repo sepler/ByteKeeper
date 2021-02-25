@@ -6,9 +6,10 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
-import dev.sepler.bytekeeper.rest.GetFileRequest;
-import dev.sepler.bytekeeper.rest.GetFilesRequest;
-import dev.sepler.bytekeeper.rest.GetFilesResponse;
+import dev.sepler.bytekeeper.rest.GetByteFileRequest;
+import dev.sepler.bytekeeper.rest.GetByteFileResponse;
+import dev.sepler.bytekeeper.rest.GetByteFilesRequest;
+import dev.sepler.bytekeeper.rest.GetByteFilesResponse;
 import dev.sepler.bytekeeper.rest.Identifier;
 import dev.sepler.bytekeeper.rest.PutFileRequest;
 import dev.sepler.bytekeeper.rest.PutFileResponse;
@@ -40,45 +41,64 @@ public class ByteKeeperControllerTest {
     private FileSystemResource fileSystemResource;
 
     @Test
-    public void getFile_withValidRequest_thenOk() {
-        GetFileRequest getFileRequest = new GetFileRequest().withId(new Identifier().withValue("id"));
+    public void downloadFile_withValidRequest_thenOk() {
+        doReturn(fileSystemResource).when(byteKeeperService).downloadFile(any());
 
-        doReturn(fileSystemResource).when(byteKeeperService).getFile(any());
-
-        ResponseEntity<Resource> responseEntity = byteKeeperController.getFile(getFileRequest);
+        ResponseEntity<Resource> responseEntity = byteKeeperController.downloadFile("id");
         Assertions.assertNotNull(responseEntity.getBody());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void getFile_withInvalidRequest_thenThrowBadRequestException() {
-        GetFileRequest getFileRequest = new GetFileRequest();
+    public void downloadFile_withInvalidRequest_thenThrowBadRequestException() {
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.downloadFile("");
+        });
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+
+    }
+
+    @Test
+    public void getByteFile_withValidRequest_thenOk() {
+        GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
+                .withId(new Identifier().withValue("id"));
+
+        doReturn(new dev.sepler.bytekeeper.model.ByteFile()).when(byteKeeperService).getByteFile(any());
+
+        ResponseEntity<GetByteFileResponse> responseEntity = byteKeeperController.getByteFile(getByteFileRequest);
+        Assertions.assertNotNull(responseEntity.getBody().getByteFile());
+        Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getByteFile_withInvalidRequest_thenThrowBadRequestException() {
+        GetByteFileRequest getByteFileRequest = new GetByteFileRequest();
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
-            byteKeeperController.getFile(getFileRequest);
+            byteKeeperController.getByteFile(getByteFileRequest);
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
     }
 
     @Test
-    public void getFiles_withValidRequest_thenOk() {
-        GetFilesRequest getFilesRequest = new GetFilesRequest()
+    public void getByteFiles_withValidRequest_thenOk() {
+        GetByteFilesRequest getFilesRequest = new GetByteFilesRequest()
                 .withIds(Arrays.asList(new Identifier().withValue("id1"), new Identifier().withValue("id2")));
 
         doReturn(Arrays.asList(new dev.sepler.bytekeeper.model.ByteFile(),
-                new dev.sepler.bytekeeper.model.ByteFile())).when(byteKeeperService).getFiles(anyList());
+                new dev.sepler.bytekeeper.model.ByteFile())).when(byteKeeperService).getByteFiles(anyList());
 
-        ResponseEntity<GetFilesResponse> responseEntity = byteKeeperController.getFiles(getFilesRequest);
+        ResponseEntity<GetByteFilesResponse> responseEntity = byteKeeperController.getByteFiles(getFilesRequest);
         Assertions.assertFalse(responseEntity.getBody().getByteFiles().isEmpty());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void getFiles_withInvalidRequest_thenThrowBadRequestException() {
-        GetFilesRequest getFilesRequest = new GetFilesRequest();
+    public void getByteFiles_withInvalidRequest_thenThrowBadRequestException() {
+        GetByteFilesRequest getFilesRequest = new GetByteFilesRequest();
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
-            byteKeeperController.getFiles(getFilesRequest);
+            byteKeeperController.getByteFiles(getFilesRequest);
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
     }

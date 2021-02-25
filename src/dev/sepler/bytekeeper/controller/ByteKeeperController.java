@@ -6,9 +6,10 @@ import dev.sepler.bytekeeper.mapper.ByteFileMapper;
 import dev.sepler.bytekeeper.mapper.IdentifierMapper;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
-import dev.sepler.bytekeeper.rest.GetFileRequest;
-import dev.sepler.bytekeeper.rest.GetFilesRequest;
-import dev.sepler.bytekeeper.rest.GetFilesResponse;
+import dev.sepler.bytekeeper.rest.GetByteFileRequest;
+import dev.sepler.bytekeeper.rest.GetByteFileResponse;
+import dev.sepler.bytekeeper.rest.GetByteFilesRequest;
+import dev.sepler.bytekeeper.rest.GetByteFilesResponse;
 import dev.sepler.bytekeeper.rest.PutFileRequest;
 import dev.sepler.bytekeeper.rest.PutFileResponse;
 import dev.sepler.bytekeeper.service.ByteKeeperService;
@@ -28,6 +29,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,32 +48,45 @@ public class ByteKeeperController implements ByteKeeperApi {
     private final ByteKeeperService byteKeeperService;
 
     @Override
-    public ResponseEntity<Resource> getFile(final GetFileRequest getFileRequest) {
-        log.info("Received getFile request: {}", getFileRequest);
-        Set<ConstraintViolation<GetFileRequest>> violations = validator.validate(getFileRequest);
-        if (!violations.isEmpty()) {
-            throwErrorResponse(violations);
+    public ResponseEntity<Resource> downloadFile(String id) {
+        log.info("Received downloadFile request: id={}", id);
+        if (!StringUtils.hasText(id)) {
+            throwErrorResponse("id must not be blank");
         }
-
-        Identifier id = identifierMapper.map(getFileRequest.getId());
-        FileSystemResource fileSystemResource = byteKeeperService.getFile(id);
+        FileSystemResource fileSystemResource = byteKeeperService.downloadFile(id);
 
         return ResponseEntity.ok().body(fileSystemResource);
     }
 
     @Override
-    public ResponseEntity<GetFilesResponse> getFiles(final GetFilesRequest getFilesRequest) {
-        log.info("Received getFiles request: {}", getFilesRequest);
-        Set<ConstraintViolation<GetFilesRequest>> violations = validator.validate(getFilesRequest);
+    public ResponseEntity<GetByteFileResponse> getByteFile(GetByteFileRequest getByteFileRequest) {
+        log.info("Received getByteFile request: {}", getByteFileRequest);
+        Set<ConstraintViolation<GetByteFileRequest>> violations = validator.validate(getByteFileRequest);
+        if (!violations.isEmpty()) {
+            throwErrorResponse(violations);
+        }
+
+        Identifier id = identifierMapper.map(getByteFileRequest.getId());
+        ByteFile byteFile = byteKeeperService.getByteFile(id);
+
+        GetByteFileResponse getByteFileResponse = new GetByteFileResponse()
+                .withByteFile(byteFileMapper.toSdk(byteFile));
+        return ResponseEntity.ok().body(getByteFileResponse);
+    }
+
+    @Override
+    public ResponseEntity<GetByteFilesResponse> getByteFiles(final GetByteFilesRequest getFilesRequest) {
+        log.info("Received getByteFiles request: {}", getFilesRequest);
+        Set<ConstraintViolation<GetByteFilesRequest>> violations = validator.validate(getFilesRequest);
         if (!violations.isEmpty()) {
             throwErrorResponse(violations);
         }
         List<Identifier> ids = getFilesRequest.getIds().stream()
                 .map(identifierMapper::map)
                 .collect(Collectors.toList());
-        List<ByteFile> byteFiles = byteKeeperService.getFiles(ids);
+        List<ByteFile> byteFiles = byteKeeperService.getByteFiles(ids);
 
-        GetFilesResponse getFilesResponse = new GetFilesResponse()
+        GetByteFilesResponse getFilesResponse = new GetByteFilesResponse()
                 .withByteFiles(byteFiles.stream().map(byteFileMapper::toSdk).collect(Collectors.toList()));
         return ResponseEntity.ok().body(getFilesResponse);
     }

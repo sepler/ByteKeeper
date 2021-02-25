@@ -33,21 +33,28 @@ public class ByteKeeperServiceTest {
     private FileSystemResource fileSystemResource;
 
     @Test
-    public void getFile_worksOk() {
-        Identifier id = new Identifier().withValue("id");
-
+    public void downloadFile_worksOk() {
         doReturn(fileSystemResource).when(fileAccessor).retrieve("id");
 
-        FileSystemResource fileSystemResource = byteKeeperService.getFile(id);
+        FileSystemResource fileSystemResource = byteKeeperService.downloadFile("id");
 
         Assertions.assertNotNull(fileSystemResource);
     }
 
     @Test
-    public void getFiles_worksOk() {
+    public void getByteFile_worksOk() {
+        Identifier id = new Identifier().withValue("id");
+
+        ByteFile byteFile = byteKeeperService.getByteFile(id);
+
+        Assertions.assertNotNull(byteFile);
+    }
+
+    @Test
+    public void getByteFiles_worksOk() {
         List<Identifier> ids = Arrays.asList(new Identifier(), new Identifier());
 
-        List<ByteFile> byteFiles = byteKeeperService.getFiles(ids);
+        List<ByteFile> byteFiles = byteKeeperService.getByteFiles(ids);
 
         Assertions.assertEquals(2, byteFiles.size());
     }

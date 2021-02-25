@@ -21,11 +21,15 @@ public class ByteKeeperService {
     @Autowired
     private final FileAccessor fileAccessor;
 
-    public FileSystemResource getFile(final Identifier id) {
-        return fileAccessor.retrieve(id.getValue());
+    public FileSystemResource downloadFile(final String id) {
+        return fileAccessor.retrieve(id);
     }
 
-    public List<ByteFile> getFiles(final List<Identifier> ids) {
+    public ByteFile getByteFile(final Identifier id) {
+        return new ByteFile().withId(id);
+    }
+
+    public List<ByteFile> getByteFiles(final List<Identifier> ids) {
         return ids.stream().map(id -> new ByteFile().withId(id)).collect(Collectors.toList());
     }
 

@@ -61,7 +61,7 @@ task buildModel(dependsOn: [tasks.clean, tasks.openApiGenerate]) {
 }
 openApiGenerate {
 	generatorName = "spring"
-	inputSpec = "$rootDir/resources/spec/structure.yml".toString()
+	inputSpec = "$rootDir/resources/spec/main.yml".toString()
 	outputDir = "$buildDir/private".toString()
 	templateDir = "$rootDir/resources/templates".toString()
 
