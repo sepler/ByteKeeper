@@ -31,7 +31,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.4.2.Final'
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
     implementation 'org.projectlombok:lombok'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
@@ -123,6 +123,7 @@ spotbugsMain {
 spotbugsTest.enabled false
 
 final JACOCO_EXCLUDED = [
+        'dev/sepler/bytekeeper/dao/*',
         'dev/sepler/bytekeeper/mapper/*',
         'dev/sepler/bytekeeper/model/*',
 		'dev/sepler/bytekeeper/runtime/*'

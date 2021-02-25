@@ -151,6 +151,7 @@ components:
           items:
             $ref: "#/components/schemas/Identifier"
           minItems: 2
+          maxItems: 10
       required:
         - ids
     GetByteFilesResponse:
