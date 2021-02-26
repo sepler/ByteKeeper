@@ -44,7 +44,7 @@ dependencies {
 }
 
 bootJar {
-	mainClassName 'dev.steepler.ByteKeeper.runtime.ByteKeeperApplication'
+	mainClassName 'dev.sepler.bytekeeper.runtime.ByteKeeperApplication'
 }
 
 compileJava {

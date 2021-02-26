@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+  bytekeeperserver:
+    build: .
+    restart: always
+    container_name: bytekeeperserver
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    volumes:
+      - $HOME/data/mongo-data:/data/db
+      - $HOME/data/mongo-bkp:/data/bkp
+    restart: always
