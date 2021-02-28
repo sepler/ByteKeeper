@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
+import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.rest.GetByteFileRequest;
@@ -60,7 +62,26 @@ public class ByteKeeperControllerTest {
             byteKeeperController.downloadFile("");
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
 
+    @Test
+    public void downloadFile_withNotFound_thenThrowNotFoundException() {
+        doThrow(new ByteFileNotFoundException("id")).when(byteKeeperService).getByteFile(any());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.downloadFile("file");
+        });
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+    }
+
+    @Test
+    public void downloadFile_withRuntimeException_thenThrowInternalErrorException() {
+        doThrow(new RuntimeException()).when(byteKeeperService).getByteFile(any());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.downloadFile("file");
+        });
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
     }
 
     @Test
@@ -83,6 +104,30 @@ public class ByteKeeperControllerTest {
             byteKeeperController.getByteFile(getByteFileRequest);
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
+
+    @Test
+    public void getByteFile_withNotFound_thenThrowNotFoundException() {
+        GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
+                .withId(new Identifier().withValue("id"));
+        doThrow(new ByteFileNotFoundException("id")).when(byteKeeperService).getByteFile(any());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.getByteFile(getByteFileRequest);
+        });
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+    }
+
+    @Test
+    public void getByteFile_withRuntimeException_thenThrowInternalErrorException() {
+        GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
+                .withId(new Identifier().withValue("id"));
+        doThrow(new RuntimeException()).when(byteKeeperService).getByteFile(any());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.getByteFile(getByteFileRequest);
+        });
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
     }
 
     @Test
@@ -109,6 +154,18 @@ public class ByteKeeperControllerTest {
     }
 
     @Test
+    public void getByteFiles_withRuntimeException_thenThrowInternalErrorException() {
+        GetByteFilesRequest getFilesRequest = new GetByteFilesRequest()
+                .withIds(Arrays.asList(new Identifier().withValue("id1"), new Identifier().withValue("id2")));
+
+        doThrow(new RuntimeException()).when(byteKeeperService).getByteFiles(any());
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.getByteFiles(getFilesRequest);
+        });
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
+    }
+
+    @Test
     public void putFile_withValidRequest_thenOk() {
         PutFileRequest putFileRequest = new PutFileRequest();
         MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
@@ -128,6 +185,18 @@ public class ByteKeeperControllerTest {
             byteKeeperController.putFile(null, putFileRequest);
         });
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
+
+    @Test
+    public void putFile_withRuntimeException_thenThrowInternalErrorException() {
+        PutFileRequest putFileRequest = new PutFileRequest();
+        MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
+        doThrow(new RuntimeException()).when(byteKeeperService).putFile(any());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.putFile(multipartFile, putFileRequest);
+        });
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
     }
 
 }

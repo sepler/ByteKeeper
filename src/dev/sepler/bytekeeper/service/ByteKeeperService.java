@@ -2,6 +2,7 @@ package dev.sepler.bytekeeper.service;
 
 import dev.sepler.bytekeeper.accessor.FileAccessor;
 import dev.sepler.bytekeeper.dao.ByteFileRepository;
+import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
 import java.time.Instant;
@@ -31,7 +32,7 @@ public class ByteKeeperService {
     }
 
     public ByteFile getByteFile(final Identifier id) {
-        return byteFileRepository.findById(id).get();
+        return byteFileRepository.findById(id).orElseThrow(() -> new ByteFileNotFoundException(id.getValue()));
     }
 
     public List<ByteFile> getByteFiles(final List<Identifier> ids) {

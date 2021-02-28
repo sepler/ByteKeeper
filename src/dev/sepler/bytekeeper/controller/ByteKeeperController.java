@@ -1,6 +1,7 @@
 package dev.sepler.bytekeeper.controller;
 
 import dev.sepler.bytekeeper.ByteKeeperApi;
+import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
 import dev.sepler.bytekeeper.mapper.ByteFileMapper;
 import dev.sepler.bytekeeper.mapper.IdentifierMapper;
@@ -52,13 +53,20 @@ public class ByteKeeperController implements ByteKeeperApi {
     public ResponseEntity<Resource> downloadFile(String id) {
         log.info("Received downloadFile request: id={}", id);
         if (!StringUtils.hasText(id)) {
-            throwErrorResponse("id must not be blank");
+            throw createBadRequestErrorResponse("id must not be blank");
         }
-        String fileName = byteKeeperService.getByteFile(Identifier.of(id)).getName();
-        FileSystemResource fileSystemResource = byteKeeperService.downloadFile(id);
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add("Content-Disposition", "attachment; filename=" + fileName);
-        return ResponseEntity.ok().headers(responseHeaders).body(fileSystemResource);
+        try {
+            String fileName = byteKeeperService.getByteFile(Identifier.of(id)).getName();
+            FileSystemResource fileSystemResource = byteKeeperService.downloadFile(id);
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.add("Content-Disposition", "attachment; filename=" + fileName);
+            return ResponseEntity.ok().headers(responseHeaders).body(fileSystemResource);
+        } catch (ByteFileNotFoundException exception) {
+            throw createNotFoundErrorResponse(exception.getId());
+        } catch (Exception exception) {
+            log.error("Encountered exception while processing request", exception);
+            throw createInternalServerErrorResponse();
+        }
     }
 
     @Override
@@ -66,15 +74,22 @@ public class ByteKeeperController implements ByteKeeperApi {
         log.info("Received getByteFile request: {}", getByteFileRequest);
         Set<ConstraintViolation<GetByteFileRequest>> violations = validator.validate(getByteFileRequest);
         if (!violations.isEmpty()) {
-            throwErrorResponse(violations);
+            throw createBadRequestErrorResponse(violations);
         }
 
         Identifier id = identifierMapper.map(getByteFileRequest.getId());
-        ByteFile byteFile = byteKeeperService.getByteFile(id);
+        try {
+            ByteFile byteFile = byteKeeperService.getByteFile(id);
 
-        GetByteFileResponse getByteFileResponse = new GetByteFileResponse()
-                .withByteFile(byteFileMapper.toSdk(byteFile));
-        return ResponseEntity.ok().body(getByteFileResponse);
+            GetByteFileResponse getByteFileResponse = new GetByteFileResponse()
+                    .withByteFile(byteFileMapper.toSdk(byteFile));
+            return ResponseEntity.ok().body(getByteFileResponse);
+        } catch (ByteFileNotFoundException exception) {
+            throw createNotFoundErrorResponse(exception.getId());
+        } catch (Exception exception) {
+            log.error("Encountered exception while processing request", exception);
+            throw createInternalServerErrorResponse();
+        }
     }
 
     @Override
@@ -82,16 +97,21 @@ public class ByteKeeperController implements ByteKeeperApi {
         log.info("Received getByteFiles request: {}", getFilesRequest);
         Set<ConstraintViolation<GetByteFilesRequest>> violations = validator.validate(getFilesRequest);
         if (!violations.isEmpty()) {
-            throwErrorResponse(violations);
+            throw createBadRequestErrorResponse(violations);
         }
         List<Identifier> ids = getFilesRequest.getIds().stream()
                 .map(identifierMapper::map)
                 .collect(Collectors.toList());
-        List<ByteFile> byteFiles = byteKeeperService.getByteFiles(ids);
+        try {
+            List<ByteFile> byteFiles = byteKeeperService.getByteFiles(ids);
 
-        GetByteFilesResponse getFilesResponse = new GetByteFilesResponse()
-                .withByteFiles(byteFiles.stream().map(byteFileMapper::toSdk).collect(Collectors.toList()));
-        return ResponseEntity.ok().body(getFilesResponse);
+            GetByteFilesResponse getFilesResponse = new GetByteFilesResponse()
+                    .withByteFiles(byteFiles.stream().map(byteFileMapper::toSdk).collect(Collectors.toList()));
+            return ResponseEntity.ok().body(getFilesResponse);
+        } catch (Exception exception) {
+            log.error("Encountered exception while processing request", exception);
+            throw createInternalServerErrorResponse();
+        }
     }
 
     @Override
@@ -99,31 +119,50 @@ public class ByteKeeperController implements ByteKeeperApi {
         log.info("Received putFiles request: {}", putFileRequest);
         Set<ConstraintViolation<PutFileRequest>> violations = validator.validate(putFileRequest);
         if (!violations.isEmpty()) {
-            throwErrorResponse(violations);
+            throw createBadRequestErrorResponse(violations);
         } else if (Objects.isNull(file)) {
-            throwErrorResponse("file must not be null");
+            throw createBadRequestErrorResponse("file must not be null");
         }
-        Identifier id = byteKeeperService.putFile(file);
+        try {
+            Identifier id = byteKeeperService.putFile(file);
 
-        PutFileResponse putFileResponse = new PutFileResponse()
-                .withId(identifierMapper.toSdk(id));
-        return ResponseEntity.ok().body(putFileResponse);
+            PutFileResponse putFileResponse = new PutFileResponse()
+                    .withId(identifierMapper.toSdk(id));
+            return ResponseEntity.ok().body(putFileResponse);
+        } catch (Exception exception) {
+            log.error("Encountered exception while processing request", exception);
+            throw createInternalServerErrorResponse();
+        }
     }
 
-    private static <T> void throwErrorResponse(final Set<ConstraintViolation<T>> violationList) {
+    private static <T> ErrorRequestException createBadRequestErrorResponse(final Set<ConstraintViolation<T>> violationList) {
         List<String> messages = violationList.stream()
                 .map(violation -> violation.getPropertyPath().toString() + " " + violation.getMessage())
                 .collect(Collectors.toList());
-        throwErrorResponse(messages);
+        return createBadRequestErrorResponse(messages);
     }
 
-    private static void throwErrorResponse(final String reason) {
-        throwErrorResponse(Collections.singletonList(reason));
+    private static ErrorRequestException createBadRequestErrorResponse(final String reason) {
+        return createBadRequestErrorResponse(Collections.singletonList(reason));
     }
 
-    private static void throwErrorResponse(final List<String> reason) {
+    private static ErrorRequestException createBadRequestErrorResponse(final List<String> reason) {
         String errorMessage = "Invalid request: " + reason;
-        log.warn(errorMessage);
-        throw new ErrorRequestException(HttpStatus.BAD_REQUEST, errorMessage);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, errorMessage);
     }
+
+    private static ErrorRequestException createInternalServerErrorResponse() {
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error.");
+    }
+
+    private static ErrorRequestException createNotFoundErrorResponse(final String reason) {
+        String errorMessage = "Not found: " + reason;
+        return createErrorResponse(HttpStatus.NOT_FOUND, errorMessage);
+    }
+
+    private static ErrorRequestException createErrorResponse(final HttpStatus httpStatus, final String reason) {
+        log.warn(reason);
+        return new ErrorRequestException(httpStatus, reason);
+    }
+
 }
