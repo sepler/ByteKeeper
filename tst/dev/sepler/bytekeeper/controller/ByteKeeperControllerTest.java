@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
+import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.rest.GetByteFileRequest;
 import dev.sepler.bytekeeper.rest.GetByteFileResponse;
 import dev.sepler.bytekeeper.rest.GetByteFilesRequest;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -42,9 +44,12 @@ public class ByteKeeperControllerTest {
 
     @Test
     public void downloadFile_withValidRequest_thenOk() {
+        doReturn(new ByteFile().withName("filename.ext")).when(byteKeeperService).getByteFile(any());
         doReturn(fileSystemResource).when(byteKeeperService).downloadFile(any());
 
         ResponseEntity<Resource> responseEntity = byteKeeperController.downloadFile("id");
+        HttpHeaders responseHeaders = responseEntity.getHeaders();
+        Assertions.assertTrue(responseHeaders.get("Content-Disposition").contains("attachment; filename=filename.ext"));
         Assertions.assertNotNull(responseEntity.getBody());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }

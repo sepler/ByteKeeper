@@ -27,6 +27,7 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -53,9 +54,11 @@ public class ByteKeeperController implements ByteKeeperApi {
         if (!StringUtils.hasText(id)) {
             throwErrorResponse("id must not be blank");
         }
+        String fileName = byteKeeperService.getByteFile(Identifier.of(id)).getName();
         FileSystemResource fileSystemResource = byteKeeperService.downloadFile(id);
-
-        return ResponseEntity.ok().body(fileSystemResource);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Content-Disposition", "attachment; filename=" + fileName);
+        return ResponseEntity.ok().headers(responseHeaders).body(fileSystemResource);
     }
 
     @Override
