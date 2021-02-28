@@ -1,6 +1,8 @@
 FROM adoptopenjdk/openjdk11:alpine
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
-COPY config/application.yml config/application.yml
+WORKDIR /usr/app
+COPY . .
+RUN ./gradlew release
+ARG JAR_FILE=build/libs/ByteKeeperService-0.0.1-SNAPSHOT.jar
+RUN mv ${JAR_FILE} app.jar
 RUN mkdir /storage
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-jar", "./app.jar"]
