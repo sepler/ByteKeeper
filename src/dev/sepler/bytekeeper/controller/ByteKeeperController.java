@@ -14,6 +14,7 @@ import dev.sepler.bytekeeper.rest.GetByteFilesResponse;
 import dev.sepler.bytekeeper.rest.PutFileRequest;
 import dev.sepler.bytekeeper.rest.PutFileResponse;
 import dev.sepler.bytekeeper.service.ByteKeeperService;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -61,8 +62,8 @@ public class ByteKeeperController implements ByteKeeperApi {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("Content-Disposition", "attachment; filename=" + fileName);
             return ResponseEntity.ok().headers(responseHeaders).body(fileSystemResource);
-        } catch (ByteFileNotFoundException exception) {
-            throw createNotFoundErrorResponse(exception.getId());
+        } catch (ByteFileNotFoundException | FileNotFoundException exception) {
+            throw createNotFoundErrorResponse(id);
         } catch (Exception exception) {
             log.error("Encountered exception while processing request", exception);
             throw createInternalServerErrorResponse();

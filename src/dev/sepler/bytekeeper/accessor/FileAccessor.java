@@ -1,6 +1,7 @@
 package dev.sepler.bytekeeper.accessor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,8 +29,11 @@ public class FileAccessor {
         copy(file, path);
     }
 
-    public FileSystemResource retrieve(final String name) {
+    public FileSystemResource retrieve(final String name) throws FileNotFoundException {
         Path path = buildPath(name);
+        if (!exists(path)) {
+            throw new FileNotFoundException(path.toAbsolutePath().toString());
+        }
         return new FileSystemResource(path);
     }
 
@@ -44,5 +48,9 @@ public class FileAccessor {
             log.error("Exception while saving file", exception);
             throw new RuntimeException(exception.getMessage());
         }
+    }
+
+    protected boolean exists(final Path path) {
+        return Files.exists(path);
     }
 }

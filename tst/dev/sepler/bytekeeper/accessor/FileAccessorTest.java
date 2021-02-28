@@ -1,12 +1,15 @@
 package dev.sepler.bytekeeper.accessor;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,9 +45,19 @@ public class FileAccessorTest {
     }
 
     @Test
-    public void retrieve_worksOk() {
+    public void retrieve_worksOk() throws FileNotFoundException {
+        doReturn(true).when(fileAccessor).exists(any());
         FileSystemResource fileSystemResource = fileAccessor.retrieve("name");
         Assertions.assertNotNull(fileSystemResource);
+    }
+
+
+    @Test
+    public void retrieve_notFound_throwException() throws FileNotFoundException {
+        doReturn(false).when(fileAccessor).exists(any());
+        assertThrows(FileNotFoundException.class, () -> {
+            FileSystemResource fileSystemResource = fileAccessor.retrieve("name");
+        });
     }
 
 }

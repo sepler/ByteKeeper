@@ -17,6 +17,7 @@ import dev.sepler.bytekeeper.rest.Identifier;
 import dev.sepler.bytekeeper.rest.PutFileRequest;
 import dev.sepler.bytekeeper.rest.PutFileResponse;
 import dev.sepler.bytekeeper.service.ByteKeeperService;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ public class ByteKeeperControllerTest {
     private FileSystemResource fileSystemResource;
 
     @Test
-    public void downloadFile_withValidRequest_thenOk() {
+    public void downloadFile_withValidRequest_thenOk() throws FileNotFoundException {
         doReturn(new ByteFile().withName("filename.ext")).when(byteKeeperService).getByteFile(any());
         doReturn(fileSystemResource).when(byteKeeperService).downloadFile(any());
 

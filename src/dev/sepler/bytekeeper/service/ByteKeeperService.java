@@ -5,6 +5,7 @@ import dev.sepler.bytekeeper.dao.ByteFileRepository;
 import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
+import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class ByteKeeperService {
     @Autowired
     private final ByteFileRepository byteFileRepository;
 
-    public FileSystemResource downloadFile(final String id) {
+    public FileSystemResource downloadFile(final String id) throws FileNotFoundException {
         return fileAccessor.retrieve(id);
     }
 

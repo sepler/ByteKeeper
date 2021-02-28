@@ -1,17 +1,21 @@
 package dev.sepler.bytekeeper.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import dev.sepler.bytekeeper.accessor.FileAccessor;
 import dev.sepler.bytekeeper.dao.ByteFileRepository;
+import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -46,12 +50,21 @@ public class ByteKeeperServiceTest {
     private FileSystemResource fileSystemResource;
 
     @Test
-    public void downloadFile_worksOk() {
+    public void downloadFile_worksOk() throws FileNotFoundException {
         doReturn(fileSystemResource).when(fileAccessor).retrieve("id");
 
         FileSystemResource fileSystemResource = byteKeeperService.downloadFile("id");
 
         Assertions.assertNotNull(fileSystemResource);
+    }
+
+    @Test
+    public void downloadFile_notFound_throwException() throws FileNotFoundException {
+        doThrow(new FileNotFoundException()).when(fileAccessor).retrieve("id");
+
+        assertThrows(FileNotFoundException.class, () -> {
+            byteKeeperService.downloadFile("id");
+        });
     }
 
     @Test
@@ -64,6 +77,17 @@ public class ByteKeeperServiceTest {
 
         verify(byteFileRepository, times(1)).findById(id);
         Assertions.assertNotNull(byteFile);
+    }
+
+    @Test
+    public void getByteFile_notFound_throwException() {
+        Identifier id = new Identifier().withValue("id");
+
+        doReturn(Optional.empty()).when(byteFileRepository).findById(id);
+
+        assertThrows(ByteFileNotFoundException.class, () -> {
+            byteKeeperService.getByteFile(id);
+        });
     }
 
     @Test
