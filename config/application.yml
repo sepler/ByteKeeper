@@ -2,6 +2,10 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  data:
+    mongodb:
+      database: bytekeeper
+      uri: ${SPRING_DATA_MONGODB_URI}
 bytekeeper:
   files:
-    dir: "storage/"
+    dir: storage/
