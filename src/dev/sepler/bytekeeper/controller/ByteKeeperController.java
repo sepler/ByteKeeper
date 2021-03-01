@@ -118,11 +118,13 @@ public class ByteKeeperController implements ByteKeeperApi {
     @Override
     public ResponseEntity<PutFileResponse> putFile(final MultipartFile file, final PutFileRequest putFileRequest) {
         log.info("Received putFiles request: {}", putFileRequest);
-        Set<ConstraintViolation<PutFileRequest>> violations = validator.validate(putFileRequest);
-        if (!violations.isEmpty()) {
-            throw createBadRequestErrorResponse(violations);
-        } else if (Objects.isNull(file)) {
-            throw createBadRequestErrorResponse("file must not be null");
+        if (Objects.nonNull(putFileRequest)) {
+            Set<ConstraintViolation<PutFileRequest>> violations = validator.validate(putFileRequest);
+            if (!violations.isEmpty()) {
+                throw createBadRequestErrorResponse(violations);
+            } else if (Objects.isNull(file)) {
+                throw createBadRequestErrorResponse("file must not be null");
+            }
         }
         try {
             Identifier id = byteKeeperService.putFile(file);
