@@ -160,6 +160,8 @@
             <property name="format" value="^log?|[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
         </module>
 
+        <module name="FinalParameters"/>
+
         <!-- Method and lambda parameters must follow a defined format. -->
         <module name="ParameterName">
             <property name="id" value="ParameterNameNonPublic"/>

@@ -18,7 +18,7 @@ public class Identifier {
         this.value = null;
     }
 
-    public static Identifier of(String value) {
+    public static Identifier of(final String value) {
         return new Identifier(value);
     }
 

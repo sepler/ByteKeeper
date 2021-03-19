@@ -51,7 +51,7 @@ public class ByteKeeperController implements ByteKeeperApi {
     private final ByteKeeperService byteKeeperService;
 
     @Override
-    public ResponseEntity<Resource> downloadFile(String id) {
+    public ResponseEntity<Resource> downloadFile(final String id) {
         log.info("Received downloadFile request: id={}", id);
         if (!StringUtils.hasText(id)) {
             throw createBadRequestErrorResponse("id must not be blank");
@@ -71,7 +71,7 @@ public class ByteKeeperController implements ByteKeeperApi {
     }
 
     @Override
-    public ResponseEntity<GetByteFileResponse> getByteFile(GetByteFileRequest getByteFileRequest) {
+    public ResponseEntity<GetByteFileResponse> getByteFile(final GetByteFileRequest getByteFileRequest) {
         log.info("Received getByteFile request: {}", getByteFileRequest);
         Set<ConstraintViolation<GetByteFileRequest>> violations = validator.validate(getByteFileRequest);
         if (!violations.isEmpty()) {
