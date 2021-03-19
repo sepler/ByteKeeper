@@ -8,14 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
+@Log4j2
 @Component
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
