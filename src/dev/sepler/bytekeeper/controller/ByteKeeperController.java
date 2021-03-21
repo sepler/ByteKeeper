@@ -7,6 +7,8 @@ import dev.sepler.bytekeeper.mapper.ByteFileMapper;
 import dev.sepler.bytekeeper.mapper.IdentifierMapper;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
+import dev.sepler.bytekeeper.rest.DeleteByteFileRequest;
+import dev.sepler.bytekeeper.rest.DeleteByteFileResponse;
 import dev.sepler.bytekeeper.rest.GetByteFileRequest;
 import dev.sepler.bytekeeper.rest.GetByteFileResponse;
 import dev.sepler.bytekeeper.rest.GetByteFilesRequest;
@@ -49,6 +51,31 @@ public class ByteKeeperController implements ByteKeeperApi {
 
     @Autowired
     private final ByteKeeperService byteKeeperService;
+
+    @Override
+    public ResponseEntity<DeleteByteFileResponse> deleteByteFile(final DeleteByteFileRequest deleteByteFileRequest) {
+        log.info("Received deleteByteFile request: {}", deleteByteFileRequest);
+        Set<ConstraintViolation<DeleteByteFileRequest>> violations = validator.validate(deleteByteFileRequest);
+        if (!violations.isEmpty()) {
+            throw createBadRequestErrorResponse(violations);
+        } else if (!StringUtils.hasText(deleteByteFileRequest.getToken())) {
+            throw createBadRequestErrorResponse("token must not be blank");
+        }
+        try {
+            Identifier id = identifierMapper.map(deleteByteFileRequest.getId());
+            byteKeeperService.deleteByteFile(id, deleteByteFileRequest.getToken());
+            DeleteByteFileResponse deleteByteFileResponse = new DeleteByteFileResponse()
+                    .withId(deleteByteFileRequest.getId());
+            return ResponseEntity.ok().body(deleteByteFileResponse);
+        } catch (ByteFileNotFoundException exception) {
+            throw createNotFoundErrorResponse(exception.getId());
+        } catch (UnsupportedOperationException exception) {
+            throw createBadRequestErrorResponse(exception.getMessage());
+        } catch (Exception exception) {
+            log.error("Encountered exception while processing request", exception);
+            throw createInternalServerErrorResponse();
+        }
+    }
 
     @Override
     public ResponseEntity<Resource> downloadFile(final String id) {

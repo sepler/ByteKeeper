@@ -28,6 +28,16 @@ public class ByteKeeperService {
     @Autowired
     private final ByteFileRepository byteFileRepository;
 
+    public void deleteByteFile(final Identifier id, final String token) {
+        ByteFile byteFile = getByteFile(id);
+        if (byteFile.isDeleted()) {
+            throw new UnsupportedOperationException("ByteFile is already deleted");
+        } else if (!byteFile.getDeleteToken().equals(token)) {
+            throw new UnsupportedOperationException("Invalid delete token");
+        }
+        fileAccessor.delete(byteFile.getId().getValue());
+    }
+
     public FileSystemResource downloadFile(final String id) throws FileNotFoundException {
         return fileAccessor.retrieve(id);
     }

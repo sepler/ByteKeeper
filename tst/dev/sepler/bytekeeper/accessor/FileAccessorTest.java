@@ -35,6 +35,13 @@ public class FileAccessorTest {
     }
 
     @Test
+    public void delete_worksOk() {
+        doNothing().when(fileAccessor).deleteIfExists(any(Path.class));
+
+        fileAccessor.delete(TEST_NAME);
+    }
+
+    @Test
     public void save_workOk() {
         doNothing().when(fileAccessor).copy(any(MultipartFile.class), any(Path.class));
 
@@ -51,12 +58,11 @@ public class FileAccessorTest {
         Assertions.assertNotNull(fileSystemResource);
     }
 
-
     @Test
-    public void retrieve_notFound_throwException() throws FileNotFoundException {
+    public void retrieve_notFound_throwException() {
         doReturn(false).when(fileAccessor).exists(any());
         assertThrows(FileNotFoundException.class, () -> {
-            FileSystemResource fileSystemResource = fileAccessor.retrieve("name");
+            fileAccessor.retrieve("name");
         });
     }
 

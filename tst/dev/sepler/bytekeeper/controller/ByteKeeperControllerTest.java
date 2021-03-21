@@ -1,14 +1,21 @@
 package dev.sepler.bytekeeper.controller;
 
+import static dev.sepler.bytekeeper.util.TestConstants.TEST_BYTE_FILE;
+import static dev.sepler.bytekeeper.util.TestConstants.TEST_DELETE_TOKEN;
+import static dev.sepler.bytekeeper.util.TestConstants.TEST_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
 import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.exception.ErrorRequestException;
-import dev.sepler.bytekeeper.model.ByteFile;
+import dev.sepler.bytekeeper.rest.DeleteByteFileRequest;
+import dev.sepler.bytekeeper.rest.DeleteByteFileResponse;
 import dev.sepler.bytekeeper.rest.GetByteFileRequest;
 import dev.sepler.bytekeeper.rest.GetByteFileResponse;
 import dev.sepler.bytekeeper.rest.GetByteFilesRequest;
@@ -46,13 +53,97 @@ public class ByteKeeperControllerTest {
     private FileSystemResource fileSystemResource;
 
     @Test
+    public void deleteByteFile_withValidRequest_thenOk() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest()
+                .withId(new Identifier().withValue(TEST_ID))
+                .withToken(TEST_DELETE_TOKEN);
+
+        doNothing().when(byteKeeperService).deleteByteFile(any(), anyString());
+
+        ResponseEntity<DeleteByteFileResponse> responseEntity = byteKeeperController.deleteByteFile(request);
+
+        assertEquals(TEST_ID, responseEntity.getBody().getId().getValue());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void deleteByteFile_withInvalidRequest_thenThrowBadRequestException() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest();
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.deleteByteFile(request);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
+
+    @Test
+    public void deleteByteFile_withEmptyToken_thenThrowBadRequestException() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest()
+                .withId(new Identifier().withValue(TEST_ID))
+                .withToken("");
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.deleteByteFile(request);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
+
+    @Test
+    public void deleteByteFile_withNotFound_thenThrowNotFoundException() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest()
+                .withId(new Identifier().withValue(TEST_ID))
+                .withToken(TEST_DELETE_TOKEN);
+
+        doThrow(new ByteFileNotFoundException(TEST_ID)).when(byteKeeperService).deleteByteFile(any(), anyString());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.deleteByteFile(request);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+    }
+
+    @Test
+    public void deleteByteFile_withUnsupportedOp_thenThrowBadRequestException() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest()
+                .withId(new Identifier().withValue(TEST_ID))
+                .withToken(TEST_DELETE_TOKEN);
+
+        doThrow(new UnsupportedOperationException()).when(byteKeeperService).deleteByteFile(any(), anyString());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.deleteByteFile(request);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+    }
+
+    @Test
+    public void deleteByteFile_withException_thenThrowInternalErrorException() {
+        DeleteByteFileRequest request = new DeleteByteFileRequest()
+                .withId(new Identifier().withValue(TEST_ID))
+                .withToken(TEST_DELETE_TOKEN);
+
+        doThrow(new RuntimeException()).when(byteKeeperService).deleteByteFile(any(), anyString());
+
+        ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
+            byteKeeperController.deleteByteFile(request);
+        });
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
+    }
+
+    @Test
     public void downloadFile_withValidRequest_thenOk() throws FileNotFoundException {
-        doReturn(new ByteFile().withName("filename.ext")).when(byteKeeperService).getByteFile(any());
+        doReturn(TEST_BYTE_FILE).when(byteKeeperService).getByteFile(any());
         doReturn(fileSystemResource).when(byteKeeperService).downloadFile(any());
 
-        ResponseEntity<Resource> responseEntity = byteKeeperController.downloadFile("id");
+        ResponseEntity<Resource> responseEntity = byteKeeperController.downloadFile(TEST_ID);
         HttpHeaders responseHeaders = responseEntity.getHeaders();
-        Assertions.assertTrue(responseHeaders.get("Content-Disposition").contains("attachment; filename=filename.ext"));
+        Assertions.assertTrue(responseHeaders.get("Content-Disposition")
+                .contains("attachment; filename=" + TEST_BYTE_FILE.getName()));
         Assertions.assertNotNull(responseEntity.getBody());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -67,7 +158,7 @@ public class ByteKeeperControllerTest {
 
     @Test
     public void downloadFile_withNotFound_thenThrowNotFoundException() {
-        doThrow(new ByteFileNotFoundException("id")).when(byteKeeperService).getByteFile(any());
+        doThrow(new ByteFileNotFoundException(TEST_ID)).when(byteKeeperService).getByteFile(any());
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
             byteKeeperController.downloadFile("file");
@@ -88,9 +179,9 @@ public class ByteKeeperControllerTest {
     @Test
     public void getByteFile_withValidRequest_thenOk() {
         GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
-                .withId(new Identifier().withValue("id"));
+                .withId(new Identifier().withValue(TEST_ID));
 
-        doReturn(new dev.sepler.bytekeeper.model.ByteFile()).when(byteKeeperService).getByteFile(any());
+        doReturn(TEST_BYTE_FILE).when(byteKeeperService).getByteFile(any());
 
         ResponseEntity<GetByteFileResponse> responseEntity = byteKeeperController.getByteFile(getByteFileRequest);
         Assertions.assertNotNull(responseEntity.getBody().getByteFile());
@@ -110,8 +201,8 @@ public class ByteKeeperControllerTest {
     @Test
     public void getByteFile_withNotFound_thenThrowNotFoundException() {
         GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
-                .withId(new Identifier().withValue("id"));
-        doThrow(new ByteFileNotFoundException("id")).when(byteKeeperService).getByteFile(any());
+                .withId(new Identifier().withValue(TEST_ID));
+        doThrow(new ByteFileNotFoundException(TEST_ID)).when(byteKeeperService).getByteFile(any());
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {
             byteKeeperController.getByteFile(getByteFileRequest);
@@ -122,7 +213,7 @@ public class ByteKeeperControllerTest {
     @Test
     public void getByteFile_withRuntimeException_thenThrowInternalErrorException() {
         GetByteFileRequest getByteFileRequest = new GetByteFileRequest()
-                .withId(new Identifier().withValue("id"));
+                .withId(new Identifier().withValue(TEST_ID));
         doThrow(new RuntimeException()).when(byteKeeperService).getByteFile(any());
 
         ErrorRequestException exception = assertThrows(ErrorRequestException.class, () -> {

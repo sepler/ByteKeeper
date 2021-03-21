@@ -10,6 +10,7 @@ public interface ByteFileMapper {
     @Mapping(source = "size", target = "sizeInBytes")
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "deleteToken", ignore = true)
     @Mapping(target = "version", ignore = true)
     dev.sepler.bytekeeper.model.ByteFile map(dev.sepler.bytekeeper.rest.ByteFile byteFile);
 

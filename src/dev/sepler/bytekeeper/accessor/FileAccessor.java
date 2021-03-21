@@ -37,6 +37,11 @@ public class FileAccessor {
         return new FileSystemResource(path);
     }
 
+    public void delete(final String name) {
+        Path path = buildPath(name);
+        deleteIfExists(path);
+    }
+
     private Path buildPath(final String name) {
         return Path.of(directory + File.separator + StringUtils.cleanPath(name)).toAbsolutePath();
     }
@@ -46,6 +51,15 @@ public class FileAccessor {
             Files.copy(multipartFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException exception) {
             log.error("Exception while saving file", exception);
+            throw new RuntimeException(exception.getMessage());
+        }
+    }
+
+    protected void deleteIfExists(final Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException exception) {
+            log.error("Exception while deleting file", exception);
             throw new RuntimeException(exception.getMessage());
         }
     }

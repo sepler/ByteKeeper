@@ -1,5 +1,7 @@
 package dev.sepler.bytekeeper.service;
 
+import static dev.sepler.bytekeeper.util.TestConstants.TEST_BYTE_FILE;
+import static dev.sepler.bytekeeper.util.TestConstants.TEST_ID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -50,26 +52,52 @@ public class ByteKeeperServiceTest {
     private FileSystemResource fileSystemResource;
 
     @Test
-    public void downloadFile_worksOk() throws FileNotFoundException {
-        doReturn(fileSystemResource).when(fileAccessor).retrieve("id");
+    public void deleteByteFile_worksOk() {
+        doNothing().when(fileAccessor).delete(TEST_ID);
+        doReturn(Optional.of(TEST_BYTE_FILE)).when(byteFileRepository).findById(Identifier.of(TEST_ID));
 
-        FileSystemResource fileSystemResource = byteKeeperService.downloadFile("id");
+        byteKeeperService.deleteByteFile(Identifier.of(TEST_ID), TEST_BYTE_FILE.getDeleteToken());
+    }
+
+    @Test
+    public void deleteByteFile_isDeleted_throwException() {
+        doReturn(Optional.of(TEST_BYTE_FILE.withDeleted(true))).when(byteFileRepository).findById(Identifier.of(TEST_ID));
+
+        assertThrows(UnsupportedOperationException.class, () -> {
+            byteKeeperService.deleteByteFile(Identifier.of(TEST_ID), TEST_BYTE_FILE.getDeleteToken());
+        });
+    }
+
+    @Test
+    public void deleteByteFile_badToken_throwException() {
+        doReturn(Optional.of(TEST_BYTE_FILE.withDeleteToken("foo"))).when(byteFileRepository).findById(Identifier.of(TEST_ID));
+
+        assertThrows(UnsupportedOperationException.class, () -> {
+            byteKeeperService.deleteByteFile(Identifier.of(TEST_ID), TEST_BYTE_FILE.getDeleteToken());
+        });
+    }
+
+    @Test
+    public void downloadFile_worksOk() throws FileNotFoundException {
+        doReturn(fileSystemResource).when(fileAccessor).retrieve(TEST_ID);
+
+        FileSystemResource fileSystemResource = byteKeeperService.downloadFile(TEST_ID);
 
         Assertions.assertNotNull(fileSystemResource);
     }
 
     @Test
     public void downloadFile_notFound_throwException() throws FileNotFoundException {
-        doThrow(new FileNotFoundException()).when(fileAccessor).retrieve("id");
+        doThrow(new FileNotFoundException()).when(fileAccessor).retrieve(TEST_ID);
 
         assertThrows(FileNotFoundException.class, () -> {
-            byteKeeperService.downloadFile("id");
+            byteKeeperService.downloadFile(TEST_ID);
         });
     }
 
     @Test
     public void getByteFile_worksOk() {
-        Identifier id = new Identifier().withValue("id");
+        Identifier id = new Identifier().withValue(TEST_ID);
 
         doReturn(Optional.of(new ByteFile())).when(byteFileRepository).findById(any());
 
@@ -81,7 +109,7 @@ public class ByteKeeperServiceTest {
 
     @Test
     public void getByteFile_notFound_throwException() {
-        Identifier id = new Identifier().withValue("id");
+        Identifier id = new Identifier().withValue(TEST_ID);
 
         doReturn(Optional.empty()).when(byteFileRepository).findById(id);
 

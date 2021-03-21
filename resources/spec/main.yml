@@ -8,10 +8,10 @@ servers:
   - url: http://localhost:8080
 
 paths:
-  /getByteFile:
+  /deleteByteFile/:
     post:
-      summary: Get a ByteFile
-      operationId: getByteFile
+      summary: Delete a ByteFile
+      operationId: deleteByteFile
       tags:
         - ByteKeeper
       requestBody:
@@ -19,41 +19,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GetByteFileRequest"
+              $ref: "#/components/schemas/DeleteByteFileRequest"
       responses:
         200:
-          description: ByteFile retrieved
+          description: ByteFile deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetByteFileResponse"
+                $ref: "#/components/schemas/DeleteByteFileResponse"
         400:
           description: Invalid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /getByteFiles:
-    post:
-      summary: Get multiple ByteFiles
-      operationId: getByteFiles
-      tags:
-        - ByteKeeper
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GetByteFilesRequest"
-      responses:
-        200:
-          description: Files retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetByteFilesResponse"
-        400:
-          description: Invalid request
+        404:
+          description: ByteFile not found
           content:
             application/json:
               schema:
@@ -88,6 +69,64 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         404:
           description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /getByteFile:
+    post:
+      summary: Get a ByteFile
+      operationId: getByteFile
+      tags:
+        - ByteKeeper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetByteFileRequest"
+      responses:
+        200:
+          description: ByteFile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetByteFileResponse"
+        400:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: ByteFile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /getByteFiles:
+    post:
+      summary: Get multiple ByteFiles
+      operationId: getByteFiles
+      tags:
+        - ByteKeeper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetByteFilesRequest"
+      responses:
+        200:
+          description: Files retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetByteFilesResponse"
+        400:
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -128,6 +167,24 @@ paths:
 
 components:
   schemas:
+    DeleteByteFileRequest:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Identifier"
+        token:
+          type: string
+      required:
+        - id
+        - token
+    DeleteByteFileResponse:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - id
+
     GetByteFileRequest:
       type: object
       properties:

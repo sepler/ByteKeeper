@@ -26,6 +26,8 @@ public class ByteFile {
 
     boolean deleted;
 
+    String deleteToken;
+
     public ByteFile() {
         this.id = Identifier.of("");
         this.version = 1;
@@ -34,6 +36,7 @@ public class ByteFile {
         this.sizeInBytes = 0;
         this.createdAtInUtcEpochMilliseconds = 0;
         this.deleted = false;
+        this.deleteToken = null;
     }
 
 }
