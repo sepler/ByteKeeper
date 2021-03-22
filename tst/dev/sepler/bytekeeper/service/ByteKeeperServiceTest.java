@@ -52,8 +52,12 @@ public class ByteKeeperServiceTest {
     public void deleteByteFile_worksOk() {
         doNothing().when(fileAccessor).delete(TEST_ID);
         doReturn(Optional.of(TEST_BYTE_FILE)).when(byteFileRepository).findById(Identifier.of(TEST_ID));
+        doReturn(new ByteFile()).when(byteFileRepository).save(TEST_BYTE_FILE.withDeleted(true));
 
         byteKeeperService.deleteByteFile(Identifier.of(TEST_ID), TEST_BYTE_FILE.getDeleteToken());
+
+        verify(fileAccessor, times(1)).delete(TEST_ID);
+        verify(byteFileRepository, times(1)).save(TEST_BYTE_FILE.withDeleted(true));
     }
 
     @Test

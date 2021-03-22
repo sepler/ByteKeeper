@@ -40,6 +40,7 @@ public class ByteKeeperService {
             throw new UnsupportedOperationException("Invalid delete token");
         }
         fileAccessor.delete(byteFile.getId().getValue());
+        byteFileRepository.save(byteFile.withDeleted(true));
     }
 
     public FileSystemResource downloadFile(final String id) throws FileNotFoundException {
