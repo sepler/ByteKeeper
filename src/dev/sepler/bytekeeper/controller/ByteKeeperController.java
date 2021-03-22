@@ -155,10 +155,11 @@ public class ByteKeeperController implements ByteKeeperApi {
             }
         }
         try {
-            Identifier id = byteKeeperService.putFile(file);
+            ByteFile byteFile = byteKeeperService.putFile(file);
 
             PutFileResponse putFileResponse = new PutFileResponse()
-                    .withId(identifierMapper.toSdk(id));
+                    .withId(identifierMapper.toSdk(byteFile.getId()))
+                    .withDeleteToken(byteFile.getDeleteToken());
             return ResponseEntity.ok().body(putFileResponse);
         } catch (Exception exception) {
             log.error("Encountered exception while processing request", exception);

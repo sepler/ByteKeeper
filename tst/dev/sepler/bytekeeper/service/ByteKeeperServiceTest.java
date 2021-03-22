@@ -21,11 +21,10 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,6 +32,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+@Log4j2
 @ExtendWith(MockitoExtension.class)
 public class ByteKeeperServiceTest {
 
@@ -44,9 +44,6 @@ public class ByteKeeperServiceTest {
 
     @InjectMocks
     private ByteKeeperService byteKeeperService;
-
-    @Captor
-    private ArgumentCaptor<ByteFile> byteFileArgumentCaptor;
 
     @Mock
     private FileSystemResource fileSystemResource;
@@ -134,14 +131,16 @@ public class ByteKeeperServiceTest {
     public void putFile_worksOk() {
         MultipartFile multipartFile = new MockMultipartFile("file", "origName", null, "content".getBytes());
 
-        doReturn(new ByteFile()).when(byteFileRepository).save(byteFileArgumentCaptor.capture());
+        doReturn(new ByteFile()).when(byteFileRepository).save(any(ByteFile.class));
         doNothing().when(fileAccessor).save(anyString(), eq(multipartFile));
 
-        Identifier id = byteKeeperService.putFile(multipartFile);
+        ByteFile byteFile = byteKeeperService.putFile(multipartFile);
 
-        Assertions.assertEquals("origName", byteFileArgumentCaptor.getValue().getName());
-        Assertions.assertEquals("content".getBytes().length, byteFileArgumentCaptor.getValue().getSizeInBytes());
         verify(byteFileRepository, times(1)).save(any());
-        Assertions.assertTrue(id.getValue().length() > 0);
+        Assertions.assertEquals("origName", byteFile.getName());
+        Assertions.assertEquals("content".getBytes().length, byteFile.getSizeInBytes());
+        Assertions.assertTrue(byteFile.getId().getValue().length() > 0);
+        Assertions.assertTrue(byteFile.getDeleteToken().length() > 0);
     }
+
 }

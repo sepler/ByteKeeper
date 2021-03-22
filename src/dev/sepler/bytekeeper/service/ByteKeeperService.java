@@ -6,12 +6,16 @@ import dev.sepler.bytekeeper.exception.ByteFileNotFoundException;
 import dev.sepler.bytekeeper.model.ByteFile;
 import dev.sepler.bytekeeper.model.Identifier;
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.text.RandomStringGenerator;
+import org.bson.internal.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -52,16 +56,26 @@ public class ByteKeeperService {
         return byteFiles;
     }
 
-    public Identifier putFile(final MultipartFile multipartFile) {
+    public ByteFile putFile(final MultipartFile multipartFile) {
         Identifier id = Identifier.of(UUID.randomUUID().toString());
         ByteFile byteFile = new ByteFile()
                 .withId(id)
                 .withSizeInBytes(multipartFile.getSize())
                 .withName(multipartFile.getOriginalFilename())
+                .withDeleteToken(generateDeleteToken())
                 .withCreatedAtInUtcEpochMilliseconds(Instant.now().toEpochMilli());
-        byteFileRepository.save(byteFile);
         fileAccessor.save(id.getValue(), multipartFile);
-        return id;
+        byteFileRepository.save(byteFile);
+        return byteFile;
+    }
+
+    private String generateDeleteToken() {
+        RandomStringGenerator randomStringGenerator = new RandomStringGenerator.Builder()
+                .withinRange('0', 'z')
+                .usingRandom(new SecureRandom()::nextInt)
+                .build();
+        String str = randomStringGenerator.generate(64);
+        return Base64.encode(str.getBytes(StandardCharsets.UTF_8));
     }
 
 }

@@ -231,6 +231,8 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/Identifier"
+        deleteToken:
+          type: string
       required:
         - id
 

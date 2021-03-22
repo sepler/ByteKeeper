@@ -262,10 +262,11 @@ public class ByteKeeperControllerTest {
         PutFileRequest putFileRequest = new PutFileRequest();
         MultipartFile multipartFile = new MockMultipartFile("file", "content".getBytes());
 
-        doReturn(new dev.sepler.bytekeeper.model.Identifier()).when(byteKeeperService).putFile(any());
+        doReturn(TEST_BYTE_FILE).when(byteKeeperService).putFile(any());
 
         ResponseEntity<PutFileResponse> responseEntity = byteKeeperController.putFile(multipartFile, putFileRequest);
-        Assertions.assertNotNull(responseEntity.getBody().getId());
+        Assertions.assertEquals(TEST_BYTE_FILE.getId().getValue(), responseEntity.getBody().getId().getValue());
+        Assertions.assertEquals(TEST_BYTE_FILE.getDeleteToken(), responseEntity.getBody().getDeleteToken());
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
