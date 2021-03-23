@@ -55,7 +55,7 @@ for index, item in enumerate(items, start=1):
   except requests.exceptions.ConnectionError as e:
     print(e)
     print('Error while uploading {}. Skipping ({}/{})'.format(zip_name, index, len(items)))
-    uploaded_zips.append({'name': zip_name, 'download': None, 'error': e})
+    uploaded_zips.append({'name': zip_name, 'download': None, 'error': str(e)})
   else:
     id = result['id']['value']
     uploaded_zips.append({'name': zip_name, 'download': download_method + '/' + id})
