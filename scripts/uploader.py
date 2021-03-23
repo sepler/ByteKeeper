@@ -43,7 +43,7 @@ for index, item in enumerate(items, start=1):
         }
       )
       result = requests.post(putfile_method, data=multipart_data, headers={'Content-Type': multipart_data.content_type}, verify=verify_certs).json()
-  except ConnectionError as e:
+  except requests.exceptions.ConnectionError as e:
     print(e)
     print('Error while uploading {}. Skipping ({}/{})'.format(zip_name, index, len(items)))
     uploaded_zips.append({'name': zip_name, 'download': None, 'error': e})
