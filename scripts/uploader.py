@@ -2,6 +2,7 @@ import errno
 import json
 from pprint import pprint
 import requests
+from requests_toolbelt import MultipartEncoder
 import shutil
 import tempfile
 import urllib3
@@ -34,15 +35,26 @@ for index, item in enumerate(items, start=1):
   zip_name = item + '.zip'
   zip_size_mb = os.path.getsize(zip_name) / (1024 * 1024)
   print('Uploading archive: {}. Size: {:,.5f} MB'.format(zip_name, zip_size_mb))
-  payload = {
-    'file': (zip_name, open(zip_name, 'rb'))
-  }
-  result = requests.post(putfile_method, files=payload, verify=verify_certs).json()
-  id = result['id']['value']
-  uploaded_zips.append({'name': zip_name, 'download': download_method + '/' + id})
-  print('Uploaded {}. Id: {} ({}/{})'.format(zip_name, id, index, len(items)))
+  try:
+    with open(zip_name, 'rb') as zip_file:
+      multipart_data = MultipartEncoder(
+        fields={
+          'file': (zip_name, zip_file)
+        }
+      )
+      result = requests.post(putfile_method, data=multipart_data, headers={'Content-Type': multipart_data.content_type}, verify=verify_certs).json()
+  except ConnectionError as e:
+    print(e)
+    print('Error while uploading {}. Skipping ({}/{})'.format(zip_name, index, len(items)))
+    uploaded_zips.append({'name': zip_name, 'download': None, 'error': e})
+  else:
+    id = result['id']['value']
+    uploaded_zips.append({'name': zip_name, 'download': download_method + '/' + id})
+    print('Uploaded {}. Id: {} ({}/{})'.format(zip_name, id, index, len(items)))
+  finally:
+    os.remove(zip_name)
 
 pprint(uploaded_zips)
 with open(output_file_name, 'w') as output_file:
   json.dump(uploaded_zips, output_file, indent=4)
-print('All items uploaded. Output:', output_file_name)
+print('All items processed. Output:', output_file_name)
