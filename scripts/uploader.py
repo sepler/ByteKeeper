@@ -1,8 +1,9 @@
+from clint.textui.progress import Bar
 import errno
 import json
 from pprint import pprint
 import requests
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 import shutil
 import tempfile
 import urllib3
@@ -18,6 +19,12 @@ putfile_method = api_endpoint + '/putFile'
 download_method = api_endpoint + '/download'
 if not verify_certs:
   urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def create_monitor_callback(encoder):
+  progress_bar = Bar(expected_size=encoder.len, filled_char='=')
+  def callback(monitor):
+    progress_bar.show(monitor.bytes_read)
+  return callback
 
 all_items = os.listdir('.')
 items = list(filter(lambda x: not x.endswith(excluded_ext) and x not in excluded_items, all_items))
@@ -42,7 +49,9 @@ for index, item in enumerate(items, start=1):
           'file': (zip_name, zip_file)
         }
       )
-      result = requests.post(putfile_method, data=multipart_data, headers={'Content-Type': multipart_data.content_type}, verify=verify_certs).json()
+      monitor_callback = create_monitor_callback(multipart_data)
+      multipart_data_monitor = MultipartEncoderMonitor(multipart_data, monitor_callback)
+      result = requests.post(putfile_method, data=multipart_data_monitor, headers={'Content-Type': multipart_data_monitor.content_type}, timeout=5.0, verify=verify_certs).json()
   except requests.exceptions.ConnectionError as e:
     print(e)
     print('Error while uploading {}. Skipping ({}/{})'.format(zip_name, index, len(items)))
