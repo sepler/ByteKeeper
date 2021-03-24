@@ -72,7 +72,7 @@ for index, item in enumerate(items, start=1):
       )
       monitor_callback = create_monitor_callback(multipart_data)
       multipart_data_monitor = MultipartEncoderMonitor(multipart_data, monitor_callback)
-      result = requests.post(putfile_method, data=multipart_data_monitor, headers={'Content-Type': multipart_data_monitor.content_type}, timeout=5.0, verify=verify_certs).json()
+      result = requests.post(putfile_method, data=multipart_data_monitor, headers={'Content-Type': multipart_data_monitor.content_type}, timeout=30.0, verify=verify_certs).json()
   except requests.exceptions.ConnectionError as e:
     print(e)
     print('Error while uploading {}. Skipping ({}/{})'.format(zip_name, index, len(items)))
